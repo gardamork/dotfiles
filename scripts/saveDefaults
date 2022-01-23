@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+# Small script to save current defaults for comparison on new machine.
+
+# Set default directory
+DIRECTORY="$(pwd)/defaults"
+
+prompt() {
+  read -p "$1 " INPUT
+  while :; do
+    [[ $INPUT == "Y" ]] && true;  return
+    [[ $INPUT == "n" ]] && false; return
+    read -p "" INPUT
+  done
+}
+
+saveDefaults() {
+  local PASS=0; local FAIL=0; local FAILARRAY=();
+  local RED="\e[31m"; local GREEN="\e[32m"; local RESET="\e[0m";
+
+
+  if [[ -d $DIRECTORY ]]; then :;
+  elif [[ -d "$(pwd)/$DIRECTORY" ]]; then DIRECTORY="$(pwd)$DIRECTORY";
+  else
+    prompt "Directory \"$DIRECTORY\" does not exist. Create? [Y\n]" \
+      || exit 1 && mkdir "$DIRECTORY";
+  fi
+
+
+  for DOMAIN in $(defaults domains)
+  do
+    DOMAIN=${DOMAIN/,};
+    local WRITEPATH="$DIRECTORY/$DOMAIN";
+
+    [[ ! -f $WRITEPATH ]] && { defaults export $DOMAIN - > "$WRITEPATH" \
+      && { ((PASS++)); COLOR=$GREEN; true; }; }                         \
+      || { ((FAIL++)); COLOR=$RED; FAILARRAY+=("$DOMAIN"); };
+
+    [[ $VERBOSE ]] \
+      && printf "%-4d $COLOR%s$RESET > %s\n" \
+        $((PASS + FAIL)) $DOMAIN $WRITEPATH;
+  done
+
+
+  echo "PASSED: $PASS FAILED: $FAIL"
+
+  [[ $FAIL -gt 0 ]] \
+    && prompt "List failed domains? [Y/n]" \
+    && echo -e "\nFAILED:\n ${FAILARRAY[*]}";
+
+  return;
+}
+
+printUsage() {
+  puse() { printf "   %-10s %s\n" "$1" "$2"; }
+
+  echo -e "Usage: $(basename $0) [-d <dir>] [-v] [-v]\n"
+  echo "Options:"
+  puse -d "Directory to write files. Relative or full path."
+  puse "" "   Defaults to working directory/defaults."
+  puse -v "Prints verbose output."
+  puse -h "Prints this help."
+  return;
+}
+
+OPTSTRING=":d:hv"
+while getopts ${OPTSTRING} FLAG; do
+  case ${FLAG} in
+    d)  DIRECTORY="${OPTARG}";;
+    v)  VERBOSE=true;;
+    h)  printUsage; exit 0;;
+    :)  echo "Must supply an argument to -$OPTARG" >&2; exit 1;;
+    ?)  echo -e "Invalid option: -$OPTARG.\n" >&2; printUsage; exit 1;;
+  esac
+done
+
+# Run main method
+saveDefaults
+
+exit 0;
