@@ -2,11 +2,11 @@
 
 set -e
 
-print_info()        { printf "\n\e[0;35m $1\e[0m\n\n" }     # Purple
-print_success()     { printf "\e[0;32m  [✔] $1\e[0m\n" }    # Green
-print_error()       { printf "\e[0;31m  [✖] $1 $2\e[0m\n" } # Red
-print_question()    { printf "\e[0;33m  [?] $1\e[0m" }      # Yellow
-print_result() {
+print_info()      { printf "\n\e[0;35m $1\e[0m\n\n"; }      # Purple
+print_question()  { printf "\e[0;33m  [?] $1\e[0m"; }       # Yellow
+print_success()   { printf "\e[0;32m  [✔] $1\e[0m\n"; }     # Green
+print_error()     { printf "\e[0;31m  [✖] $1 $2\e[0m\n"; }  # Red
+print_result()    {
     [ $1 -eq 0 ] && print_success "$2" || print_error "$2"
     [ "$3" == "true" ] && [ $1 -ne 0 ] && exit
 }
@@ -21,6 +21,8 @@ fi
 if test ! $(which brew)
 then
     print_info "Installing Homebrew"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     print_result $? "Installing Homebrew"
 fi
+
+print_success "Success!"
