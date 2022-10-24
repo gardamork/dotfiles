@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+print_info()        { printf "\n\e[0;35m $1\e[0m\n\n" }     # Purple
+print_success()     { printf "\e[0;32m  [✔] $1\e[0m\n" }    # Green
+print_error()       { printf "\e[0;31m  [✖] $1 $2\e[0m\n" } # Red
+print_question()    { printf "\e[0;33m  [?] $1\e[0m" }      # Yellow
+
+if test ! $(xcode-select -p)
+then
+  print_info "Installing Xcode Command Line Tools"
+  xcode-select --install
+fi
+
+if test ! $(which brew)
+then
+    print_info "Installing Homebrew"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
